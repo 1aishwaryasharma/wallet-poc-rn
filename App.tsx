@@ -8,6 +8,7 @@
 import React from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,15 +16,13 @@ import {
   Text,
   useColorScheme,
   View,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
+import WalletManager from 'react-native-wallet-manager';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import AppleWalletIcon from './assets/apple-wallet-icon.svg';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -57,10 +56,39 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [loader, setLoader] = React.useState(false);
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  async function addPass() {
+    setLoader(true);
+    try {
+      const result = await WalletManager.addPassFromUrl(
+        'https://github.com/1aishwaryasharma/resources/blob/main/passes/zpass_20240411.pkpass?raw=true',
+      );
+      console.log(result);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoader(false);
+    }
+  }
+
+  /*async function removePass() {
+    setLoader(true);
+    try {
+      const result = await WalletManager.removePass(
+        'pass.family.dev.stage.beerpoint-master',
+      );
+      console.log(`Pass removed: ${result}`);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoader(false);
+    }
+  }*/
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -71,25 +99,30 @@ function App(): React.JSX.Element {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
-        <Header />
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
+          <Section title="Apple Wallet Integration">
+            <View style={styles.walletSectionWrapper}>
+              <Pressable onPress={addPass}>
+                <View style={styles.buttonWrapper}>
+                  <Image
+                    source={AppleWalletIcon}
+                    style={styles.appleWalletIcon}
+                  />
+                  <Text style={styles.buttonText}>Add to Apple Wallet</Text>
+                </View>
+              </Pressable>
+              {loader ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#000"
+                  style={styles.activityIndicator}
+                />
+              ) : null}
+            </View>
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -110,8 +143,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '400',
   },
-  highlight: {
-    fontWeight: '700',
+  buttonWrapper: {
+    marginTop: 28,
+    marginBottom: 28,
+    padding: 16,
+    height: 58,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    flexDirection: 'row',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 20,
+  },
+  walletSectionWrapper: {
+    flexDirection: 'row',
+  },
+  activityIndicator: {
+    marginLeft: 10,
+  },
+  appleWalletIcon: {
+    width: 35,
+    height: 30,
+    marginRight: 10,
+    borderRadius: 5,
   },
 });
 
